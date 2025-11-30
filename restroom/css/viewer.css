@@ -324,3 +324,29 @@ body{
     max-width:100%;
   }
 }
+.player-main{
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #020617;
+  padding: 16px;
+}
+
+#playerThumb{
+  width: 100%;
+}
+
+#playerThumb img{
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+#videoFrameWrap{
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  display: none;         /* awalnya sembunyi, nanti JS ubah ke block */
+}
