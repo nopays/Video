@@ -33,6 +33,9 @@ body{
   background: #000;
   position: relative;   /* supaya toast skip +Xs bisa nempel di pojok */
 }
+.hidden {
+  display: none !important;
+}
 /* HEADER */
 .topbar{
   display:flex;
