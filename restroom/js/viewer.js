@@ -33,6 +33,7 @@ const shareTwitter  = document.getElementById('shareTwitter');
 const shareCopy     = document.getElementById('shareCopy');
 
 const lastWatchedBox= document.getElementById('lastWatchedBox');
+const playerPanel   = document.getElementById('playerPanel');
 
 const LAST_WATCHED_KEY = 'dkplay.lastWatched';
 
@@ -127,6 +128,11 @@ function detachCommentsListener(){
 function selectVideo(id){
   const v = videos[id];
   if (!v) return;
+
+  // Saat ada video dipilih, tampilkan panel
+  if (playerPanel) {
+    playerPanel.classList.remove('hidden');
+  }
 
   currentVideoId = id;
   playerTitle.textContent = v.title;
@@ -254,7 +260,7 @@ function openVideoFrame(v){
   }
 }
 
-playBtn.addEventListener('click', ()=>{
+function playCurrentVideo(){
   if (!currentVideoId){
     alert('Pilih video dulu ya 😊');
     return;
@@ -276,7 +282,13 @@ playBtn.addEventListener('click', ()=>{
   };
   localStorage.setItem(LAST_WATCHED_KEY, JSON.stringify(payload));
   renderLastWatched(payload);
-});
+}
+
+// tombol Play
+playBtn.addEventListener('click', playCurrentVideo);
+
+// klik thumbnail juga Play
+playerThumb.addEventListener('click', playCurrentVideo);
 
 /* ----------------- like ----------------- */
 
