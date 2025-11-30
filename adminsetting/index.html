@@ -1,1 +1,100 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>DKAdmin • Video Setting</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="css/admin.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="logo">DK<span>Admin</span></div>
+      <a class="btn ghost" href="../restroom/" target="_blank">↗ Buka Halaman Penonton</a>
+    </header>
 
+    <main class="layout">
+      <!-- FORM -->
+      <section class="form-section">
+        <h2>Tambah / Edit Video</h2>
+        <form id="videoForm" class="video-form">
+          <input type="hidden" id="videoId" />
+
+          <label>
+            Judul
+            <input type="text" id="title" required />
+          </label>
+
+          <label>
+            Deskripsi singkat
+            <textarea id="description" rows="2"></textarea>
+          </label>
+
+          <label>
+            Link video (YouTube embed / MP4)
+            <input type="text" id="videoUrl" placeholder="https://www.youtube.com/embed/..." required />
+          </label>
+
+          <label>
+            Link thumbnail
+            <input type="text" id="thumbUrl" placeholder="https://..." />
+          </label>
+
+          <label>
+            Durasi (contoh: 12:34)
+            <input type="text" id="duration" />
+          </label>
+
+          <div class="form-note">
+            History akan otomatis mencatat kapan video dibuat, diedit, dan dihapus.
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn primary">💾 Simpan</button>
+            <button type="button" id="resetBtn" class="btn ghost">Reset Form</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- TABLE + HISTORY -->
+      <section class="table-section">
+        <h2>Daftar Video & Statistik</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Judul</th>
+                <th>Views</th>
+                <th>Likes</th>
+                <th>Komen</th>
+                <th>Diupload</th>
+                <th>Terakhir Edit</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="videoTableBody">
+              <!-- dari JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="history-panel">
+          <h3>History Video</h3>
+          <div id="historyBox" class="history-box">
+            Pilih video, lalu tekan tombol <b>History</b> untuk melihat riwayat:
+            kapan diupload, diedit, dan dihapus.
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+  <!-- Config + Logic -->
+  <script src="js/firebase-config.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
