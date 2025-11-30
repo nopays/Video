@@ -153,22 +153,54 @@ function selectVideo(id){
 /* ----------------- play & view counter ----------------- */
 
 function openVideoFrame(v){
-  videoFrameWrap.hidden = false;
-  videoFrameWrap.innerHTML = '';
+  if (!v) return;
 
-  if (v.videoUrl && v.videoUrl.includes('youtube.com')){
-    const iframe = document.createElement('iframe');
-    iframe.src = v.videoUrl;
+  let url = v.videoUrl || "";
+  if (!url) return;
+
+  // ---- Pastikan wrapper tampil ----
+  videoFrameWrap.hidden = false;
+  videoFrameWrap.removeAttribute("hidden");   // jaga-jaga
+  videoFrameWrap.style.display = "block";     // paksa muncul
+  videoFrameWrap.innerHTML = "";
+
+  // ---- Normalisasi link YouTube (watch / youtu.be -> embed) ----
+  try {
+    if (url.includes("youtube.com/watch")) {
+      const u = new URL(url);
+      const id = u.searchParams.get("v");
+      if (id) url = `https://www.youtube.com/embed/${id}`;
+    } else if (url.includes("youtu.be/")) {
+      const part = url.split("youtu.be/")[1] || "";
+      const id = part.split(/[?&]/)[0];
+      if (id) url = `https://www.youtube.com/embed/${id}`;
+    }
+  } catch (e) {
+    console.warn("Gagal parse URL video", e);
+  }
+
+  // ---- Jika YouTube -> pakai iframe ----
+  if (url.includes("youtube.com")) {
+    const iframe = document.createElement("iframe");
+    iframe.src = url;
     iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
-    iframe.allowFullscreen = true;
+    iframe.setAttribute("allowfullscreen", "true");
+    iframe.style.width = "100%";
+    iframe.style.height = "260px";
+    iframe.frameBorder = "0";
     videoFrameWrap.appendChild(iframe);
   } else {
-    const vid = document.createElement('video');
-    vid.src = v.videoUrl || '';
+    // Selain YouTube -> anggap link MP4 / file video biasa
+    const vid = document.createElement("video");
+    vid.src = url;
     vid.controls = true;
     vid.autoplay = true;
+    vid.style.width = "100%";
+    vid.style.height = "260px";
     videoFrameWrap.appendChild(vid);
   }
+
+  console.log("Playing video URL:", url);
 }
 
 playBtn.addEventListener('click', ()=>{
