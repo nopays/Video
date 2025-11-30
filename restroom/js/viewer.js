@@ -189,71 +189,89 @@ function selectVideo(id){
   playerPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-/* =========================
-   PLAY & VIEW COUNTER
-========================= */
+/* ----------------- play & view counter ----------------- */
 
 function openVideoFrame(v){
   if (!v) return;
 
-  let url = v.videoUrl || '';
+  let url = v.videoUrl || "";
   if (!url) return;
 
-  // Normalisasi URL YouTube
+  // ---- Normalisasi link YouTube ----
   try {
-    if (url.includes('youtube.com/watch')) {
+    if (url.includes("youtube.com/watch")) {
       const u  = new URL(url);
-      const id = u.searchParams.get('v');
+      const id = u.searchParams.get("v");
       if (id) url = `https://www.youtube.com/embed/${id}`;
-    } else if (url.includes('youtu.be/')) {
-      const part = url.split('youtu.be/')[1] || '';
+    } else if (url.includes("youtu.be/")) {
+      const part = url.split("youtu.be/")[1] || "";
       const id   = part.split(/[?&]/)[0];
       if (id) url = `https://www.youtube.com/embed/${id}`;
     }
-  } catch (e){
-    console.warn('Gagal parse URL video', e);
+  } catch (e) {
+    console.warn("Gagal parse URL video", e);
   }
 
-  console.log('Playing video URL:', url);
+  console.log("Playing video URL:", url);
 
-  // tampilkan area video
-  playerThumb.style.display     = 'none';
-  videoFrameWrap.hidden         = false;
-  videoFrameWrap.style.display  = 'block';
-  videoFrameWrap.style.height   = '260px';
-  videoFrameWrap.style.position = 'relative';
-  videoFrameWrap.innerHTML      = '';
+  // ===============================
+  //  TAMPILKAN AREA VIDEO DENGAN PAKSA
+  // ===============================
+  if (playerThumb) {
+    playerThumb.style.display = "none";
+  }
 
-  // --- YouTube iframe ---
-  if (url.includes('youtube.com/embed')) {
-    const iframe = document.createElement('iframe');
-    iframe.src   = url;
+  if (!videoFrameWrap) return;
+
+  // hapus isi lama
+  videoFrameWrap.innerHTML = "";
+
+  // buang atribut hidden kalau ada
+  videoFrameWrap.hidden = false;
+
+  // paksa override CSS apapun
+  videoFrameWrap.style.setProperty("display", "block", "important");
+  videoFrameWrap.style.setProperty("height", "260px", "important");
+  videoFrameWrap.style.setProperty("background", "#000", "important");
+  videoFrameWrap.style.setProperty("border-radius", "12px");
+  videoFrameWrap.style.setProperty("overflow", "hidden");
+  videoFrameWrap.style.position = "relative";
+  videoFrameWrap.style.marginTop = "16px";
+
+  // ===============================
+  //  YOUTUBE (IFRAME)
+  // ===============================
+  if (url.includes("youtube.com")) {
+    const iframe = document.createElement("iframe");
+    iframe.src = url;
     iframe.allow =
-      'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-    iframe.setAttribute('allowfullscreen', 'true');
-    iframe.style.width  = '100%';
-    iframe.style.height = '100%';
-    iframe.style.border = '0';
+      "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+    iframe.setAttribute("allowfullscreen", "true");
+    iframe.style.width  = "100%";
+    iframe.style.height = "100%";
+    iframe.style.border = "0";
 
     videoFrameWrap.appendChild(iframe);
-    return; // <-- valid, masih di dalam fungsi
+    return;
   }
 
-  // --- HTML5 video (MP4 / direct) ---
-  const vid = document.createElement('video');
+  // ===============================
+  //  VIDEO BIASA (MP4 / FILE)
+  // ===============================
+  const vid = document.createElement("video");
   vid.src      = url;
   vid.controls = true;
   vid.autoplay = true;
-  vid.style.width  = '100%';
-  vid.style.height = '100%';
+  vid.style.width  = "100%";
+  vid.style.height = "100%";
 
   videoFrameWrap.appendChild(vid);
 
-  // DOUBLE TAP TO SKIP
+  // ---------- DOUBLE TAP SKIP ----------
   let skipAmount = 5;
   let lastTap    = 0;
 
-  vid.addEventListener('click', () => {
+  vid.addEventListener("click", () => {
     const now = Date.now();
 
     if (now - lastTap < 300) {
@@ -261,8 +279,7 @@ function openVideoFrame(v){
       if (dur > 0) {
         const newTime = Math.min(dur, vid.currentTime + skipAmount);
         vid.currentTime = newTime;
-
-        showSkipToast('+' + skipAmount + 's');
+        showSkipToast("+" + skipAmount + "s");
 
         skipAmount += 5;
         if (skipAmount > 100) skipAmount = 5;
@@ -273,24 +290,24 @@ function openVideoFrame(v){
   });
 
   function showSkipToast(msg){
-    const toast = document.createElement('div');
-    toast.textContent       = msg;
-    toast.style.position    = 'absolute';
-    toast.style.bottom      = '14px';
-    toast.style.right       = '18px';
-    toast.style.padding     = '6px 10px';
-    toast.style.fontSize    = '14px';
-    toast.style.background  = 'rgba(0,0,0,0.7)';
-    toast.style.color       = '#fff';
-    toast.style.borderRadius= '999px';
-    toast.style.pointerEvents = 'none';
-    toast.style.opacity     = '1';
-    toast.style.transition  = 'opacity 0.5s ease-out';
+    const toast = document.createElement("div");
+    toast.textContent = msg;
+    toast.style.position      = "absolute";
+    toast.style.bottom        = "14px";
+    toast.style.right         = "18px";
+    toast.style.padding       = "6px 10px";
+    toast.style.fontSize      = "14px";
+    toast.style.background    = "rgba(0,0,0,0.7)";
+    toast.style.color         = "#fff";
+    toast.style.borderRadius  = "999px";
+    toast.style.pointerEvents = "none";
+    toast.style.opacity       = "1";
+    toast.style.transition    = "opacity 0.5s ease-out";
 
     videoFrameWrap.appendChild(toast);
 
     setTimeout(() => {
-      toast.style.opacity = '0';
+      toast.style.opacity = "0";
       setTimeout(() => toast.remove(), 500);
     }, 400);
   }
