@@ -33,7 +33,7 @@ const shareTwitter  = document.getElementById('shareTwitter');
 const shareCopy     = document.getElementById('shareCopy');
 
 const lastWatchedBox= document.getElementById('lastWatchedBox');
-const playerPanel   = document.getElementById('playerPanel');
+const playerPanel   = document.getElementById('playerPanel');   // ⬅ tambah ini
 
 const LAST_WATCHED_KEY = 'dkplay.lastWatched';
 
@@ -144,21 +144,18 @@ function selectVideo(id){
   metaLine.textContent =
     `Diupload: ${fmtDate(v.createdAt)} • Terakhir edit: ${fmtDate(v.updatedAt||v.createdAt)}`;
 
-  // tampilkan thumbnail, sembunyikan player
   playerThumb.innerHTML =
     `<img src="${v.thumbnailUrl || 'https://i.imgur.com/E8GUx7G.jpeg'}"
            alt="${v.title}" style="width:100%;border-radius:12px;">`;
-  playerThumb.style.display    = 'block';
+
   videoFrameWrap.innerHTML     = '';
   videoFrameWrap.hidden        = true;
   videoFrameWrap.style.display = 'none';
-
   viewIncrementedFor = null;
 
   updateShareLinks(id, v);
   listenComments(id);
 }
-
 /* ----------------- play & view counter ----------------- */
 
 function openVideoFrame(v){
