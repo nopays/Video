@@ -350,3 +350,6 @@ body{
   overflow: hidden;
   display: none;         /* awalnya sembunyi, nanti JS ubah ke block */
 }
+#playerPanel.hidden {
+  display: none;
+}
