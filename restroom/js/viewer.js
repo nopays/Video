@@ -138,15 +138,14 @@ function selectVideo(id){
   metaLine.textContent =
     `Diupload: ${fmtDate(v.createdAt)} • Terakhir edit: ${fmtDate(v.updatedAt||v.createdAt)}`;
 
+  // tampilkan thumbnail, sembunyikan player
   playerThumb.innerHTML =
     `<img src="${v.thumbnailUrl || 'https://i.imgur.com/E8GUx7G.jpeg'}"
            alt="${v.title}" style="width:100%;border-radius:12px;">`;
-
-  // setiap kali pilih video baru: tunjuk thumbnail, sembunyikan player
-  playerThumb.style.display   = 'block';
-  videoFrameWrap.innerHTML    = '';
-  videoFrameWrap.hidden       = true;
-  videoFrameWrap.style.display= 'none';
+  playerThumb.style.display    = 'block';
+  videoFrameWrap.innerHTML     = '';
+  videoFrameWrap.hidden        = true;
+  videoFrameWrap.style.display = 'none';
 
   viewIncrementedFor = null;
 
@@ -179,13 +178,13 @@ function openVideoFrame(v){
 
   console.log("Playing video URL:", url);
 
-  // ---- Sembunyikan thumbnail, tampilkan kotak player ----
+  // Sembunyikan thumbnail, tampilkan frame video
   playerThumb.style.display    = 'none';
   videoFrameWrap.hidden        = false;
   videoFrameWrap.style.display = 'block';
   videoFrameWrap.innerHTML     = "";
 
-  // ---- Jika YouTube -> pakai iframe ----
+  // ------------ YouTube iframe ------------
   if (url.includes("youtube.com")) {
     const iframe = document.createElement("iframe");
     iframe.src = url;
@@ -196,147 +195,63 @@ function openVideoFrame(v){
     iframe.style.height = "100%";
     iframe.style.border = "0";
     videoFrameWrap.appendChild(iframe);
-  } else {
-    // Selain YouTube -> anggap MP4 / stream biasa
-    const vid = document.createElement("video");
-    vid.src = url;
-    vid.controls = true;
-    vid.autoplay = true;
-    vid.style.width  = "100%";
-    vid.style.height = "100%";
-    videoFrameWrap.appendChild(vid);
-  }
-}
-
-  // ===============================
-  //  MODAL FULLSCREEN UNTUK PLAYER
-  // ===============================
-
-  // Hapus modal lama kalau ada
-  const old = document.getElementById("dk-video-modal");
-  if (old) old.remove();
-
-  // Overlay gelap
-  const overlay = document.createElement("div");
-  overlay.id = "dk-video-modal";
-  overlay.style.position = "fixed";
-  overlay.style.inset = "0";
-  overlay.style.background = "rgba(0,0,0,0.85)";
-  overlay.style.display = "flex";
-  overlay.style.alignItems = "center";
-  overlay.style.justifyContent = "center";
-  overlay.style.zIndex = "9999";
-
-  // Kotak player
-  const box = document.createElement("div");
-  box.style.position = "relative";
-  box.style.width = "90%";
-  box.style.maxWidth = "900px";
-  box.style.aspectRatio = "16 / 9";
-  box.style.background = "#000";
-  box.style.borderRadius = "16px";
-  box.style.overflow = "hidden";
-  box.style.boxShadow = "0 20px 60px rgba(0,0,0,0.6)";
-
-  // Tombol close
-  const closeBtn = document.createElement("button");
-  closeBtn.textContent = "✕";
-  closeBtn.style.position = "absolute";
-  closeBtn.style.top = "8px";
-  closeBtn.style.right = "12px";
-  closeBtn.style.zIndex = "2";
-  closeBtn.style.border = "none";
-  closeBtn.style.background = "rgba(0,0,0,0.6)";
-  closeBtn.style.color = "#fff";
-  closeBtn.style.padding = "4px 10px";
-  closeBtn.style.borderRadius = "999px";
-  closeBtn.style.cursor = "pointer";
-  closeBtn.onclick = () => overlay.remove();
-  box.appendChild(closeBtn);
-
-  // Buat iframe YouTube atau video MP4
-  if (url.includes("youtube.com")) {
-    const iframe = document.createElement("iframe");
-    iframe.src = url;
-    iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
-    iframe.setAttribute("allowfullscreen", "true");
-    iframe.style.width = "100%";
-    iframe.style.height = "100%";
-    iframe.style.border = "0";
-    box.appendChild(iframe);
-  } else {
-// --- HTML5 VIDEO (MP4 / direct link) ---
-const vid = document.createElement("video");
-vid.src = url;
-vid.controls = true;
-vid.autoplay = true;
-vid.style.width = "100%";
-vid.style.height = "100%";
-box.appendChild(vid);
-
-// ================
-// DOUBLE TAP SKIP
-// ================
-let skipAmount = 5;
-let lastTap = 0;
-
-vid.addEventListener("click", () => {
-  const now = Date.now();
-
-  // cek double tap (<= 300ms)
-  if (now - lastTap < 300) {
-    // jalankan skip
-    vid.currentTime = Math.min(vid.duration, vid.currentTime + skipAmount);
-    console.log("Skip:", skipAmount, "sec");
-
-    // tambah skip untuk tap berikutnya
-    skipAmount += 5;
-    if (skipAmount > 100) skipAmount = 5;
-
-    // animasi feedback
-    showSkipToast("➜ +" + (skipAmount - 5) + "s");
-
-  } else {
-    // tap pertama
-    skipAmount = 5;
+    // (skip feature untuk YouTube tidak bisa tanpa YouTube API)
+    return;
   }
 
-  lastTap = now;
-});
+  // ------------ HTML5 video (MP4 / direct link) ------------
+  const vid = document.createElement("video");
+  vid.src = url;
+  vid.controls = true;
+  vid.autoplay = true;
+  vid.style.width  = "100%";
+  vid.style.height = "100%";
+  videoFrameWrap.appendChild(vid);
 
-// ------------
-// visual feedback (floating text)
-// ------------
-function showSkipToast(msg){
-  const toast = document.createElement("div");
-  toast.textContent = msg;
-  toast.style.position = "absolute";
-  toast.style.bottom = "20px";
-  toast.style.right = "20px";
-  toast.style.padding = "8px 14px";
-  toast.style.fontSize = "16px";
-  toast.style.background = "rgba(0,0,0,0.6)";
-  toast.style.color = "white";
-  toast.style.borderRadius = "8px";
-  toast.style.pointerEvents = "none";
-  toast.style.opacity = "1";
-  toast.style.transition = "opacity 0.6s ease-out";
-  box.appendChild(toast);
+  // ==============
+  // DOUBLE TAP SKIP
+  // ==============
+  let skipAmount = 5;   // mulai 5 detik
+  let lastTap = 0;
 
-  setTimeout(() => {
-    toast.style.opacity = "0";
-    setTimeout(() => toast.remove(), 600);
-  }, 400);
-}
+  vid.addEventListener("click", () => {
+    const now = Date.now();
 
-  overlay.appendChild(box);
-
-  // Klik luar player untuk tutup
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) overlay.remove();
+    // deteksi double tap (2 klik < 300ms)
+    if (now - lastTap < 300) {
+      const dur = vid.duration || 0;
+      if (dur > 0) {
+        const newTime = Math.min(dur, vid.currentTime + skipAmount);
+        vid.currentTime = newTime;
+        showSkipToast("+" + skipAmount + "s");
+        skipAmount += 5;
+        if (skipAmount > 100) skipAmount = 5;
+      }
+    }
+    lastTap = now;
   });
 
-  document.body.appendChild(overlay);
+  function showSkipToast(msg){
+    const toast = document.createElement("div");
+    toast.textContent = msg;
+    toast.style.position = "absolute";
+    toast.style.bottom = "14px";
+    toast.style.right = "18px";
+    toast.style.padding = "6px 10px";
+    toast.style.fontSize = "14px";
+    toast.style.background = "rgba(0,0,0,0.7)";
+    toast.style.color = "#fff";
+    toast.style.borderRadius = "999px";
+    toast.style.pointerEvents = "none";
+    toast.style.opacity = "1";
+    toast.style.transition = "opacity 0.5s ease-out";
+    videoFrameWrap.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.opacity = "0";
+      setTimeout(() => toast.remove(), 500);
+    }, 400);
+  }
 }
 
 playBtn.addEventListener('click', ()=>{
