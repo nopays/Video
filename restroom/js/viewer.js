@@ -158,12 +158,6 @@ function openVideoFrame(v){
   let url = v.videoUrl || "";
   if (!url) return;
 
-  // ---- Pastikan wrapper tampil ----
-  videoFrameWrap.hidden = false;
-  videoFrameWrap.removeAttribute("hidden");   // jaga-jaga
-  videoFrameWrap.style.display = "block";     // paksa muncul
-  videoFrameWrap.innerHTML = "";
-
   // ---- Normalisasi link YouTube (watch / youtu.be -> embed) ----
   try {
     if (url.includes("youtube.com/watch")) {
@@ -179,28 +173,82 @@ function openVideoFrame(v){
     console.warn("Gagal parse URL video", e);
   }
 
-  // ---- Jika YouTube -> pakai iframe ----
+  console.log("Playing video URL:", url);
+
+  // ===============================
+  //  MODAL FULLSCREEN UNTUK PLAYER
+  // ===============================
+
+  // Hapus modal lama kalau ada
+  const old = document.getElementById("dk-video-modal");
+  if (old) old.remove();
+
+  // Overlay gelap
+  const overlay = document.createElement("div");
+  overlay.id = "dk-video-modal";
+  overlay.style.position = "fixed";
+  overlay.style.inset = "0";
+  overlay.style.background = "rgba(0,0,0,0.85)";
+  overlay.style.display = "flex";
+  overlay.style.alignItems = "center";
+  overlay.style.justifyContent = "center";
+  overlay.style.zIndex = "9999";
+
+  // Kotak player
+  const box = document.createElement("div");
+  box.style.position = "relative";
+  box.style.width = "90%";
+  box.style.maxWidth = "900px";
+  box.style.aspectRatio = "16 / 9";
+  box.style.background = "#000";
+  box.style.borderRadius = "16px";
+  box.style.overflow = "hidden";
+  box.style.boxShadow = "0 20px 60px rgba(0,0,0,0.6)";
+
+  // Tombol close
+  const closeBtn = document.createElement("button");
+  closeBtn.textContent = "✕";
+  closeBtn.style.position = "absolute";
+  closeBtn.style.top = "8px";
+  closeBtn.style.right = "12px";
+  closeBtn.style.zIndex = "2";
+  closeBtn.style.border = "none";
+  closeBtn.style.background = "rgba(0,0,0,0.6)";
+  closeBtn.style.color = "#fff";
+  closeBtn.style.padding = "4px 10px";
+  closeBtn.style.borderRadius = "999px";
+  closeBtn.style.cursor = "pointer";
+  closeBtn.onclick = () => overlay.remove();
+  box.appendChild(closeBtn);
+
+  // Buat iframe YouTube atau video MP4
   if (url.includes("youtube.com")) {
     const iframe = document.createElement("iframe");
     iframe.src = url;
     iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
     iframe.setAttribute("allowfullscreen", "true");
     iframe.style.width = "100%";
-    iframe.style.height = "260px";
-    iframe.frameBorder = "0";
-    videoFrameWrap.appendChild(iframe);
+    iframe.style.height = "100%";
+    iframe.style.border = "0";
+    box.appendChild(iframe);
   } else {
-    // Selain YouTube -> anggap link MP4 / file video biasa
     const vid = document.createElement("video");
     vid.src = url;
     vid.controls = true;
     vid.autoplay = true;
     vid.style.width = "100%";
-    vid.style.height = "260px";
-    videoFrameWrap.appendChild(vid);
+    vid.style.height = "100%";
+    box.appendChild(vid);
   }
 
-  console.log("Playing video URL:", url);
+  overlay.appendChild(box);
+
+  // Klik luar player untuk tutup
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) overlay.remove();
+  });
+
+  document.body.appendChild(overlay);
 }
 
 playBtn.addEventListener('click', ()=>{
