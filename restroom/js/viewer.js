@@ -10,7 +10,7 @@ const searchInput   = document.getElementById('searchInput');
 
 const playerTitle   = document.getElementById('playerTitle');
 const playerDesc    = document.getElementById('playerDesc');
-const playerThumb   = document.getElementById('playerThumb');
+const playerThumb   = document.getElementById('playerThumb');   // area player
 const metaLine      = document.getElementById('metaLine');
 
 const statViews     = document.getElementById('statViews');
@@ -32,14 +32,9 @@ const shareTwitter  = document.getElementById('shareTwitter');
 const shareCopy     = document.getElementById('shareCopy');
 
 const lastWatchedBox= document.getElementById('lastWatchedBox');
-const playerPanel   = document.getElementById('playerPanel');
+const playerPanel   = document.getElementById('playerPanel');   // kalau mau dipakai nanti
 
 const LAST_WATCHED_KEY = 'dkplay.lastWatched';
-
-/* ==== SEMBUNYIKAN PANEL PLAYER DI AWAL ==== */
-if (playerPanel) {
-  playerPanel.classList.add('hidden'); // pastikan di CSS: .hidden {display:none!important;}
-}
 
 /* ----------------- helpers ----------------- */
 
@@ -133,11 +128,6 @@ function selectVideo(id){
   const v = videos[id];
   if (!v) return;
 
-  // Saat ada video dipilih, tampilkan panel
-  if (playerPanel) {
-    playerPanel.classList.remove('hidden');
-  }
-
   currentVideoId = id;
   playerTitle.textContent = v.title;
   playerDesc.textContent  = v.description || 'Drama Korea pilihan malam ini.';
@@ -148,17 +138,17 @@ function selectVideo(id){
   metaLine.textContent =
     `Diupload: ${fmtDate(v.createdAt)} • Terakhir edit: ${fmtDate(v.updatedAt||v.createdAt)}`;
 
+  // tampilkan thumbnail lagi waktu pilih video baru
   playerThumb.innerHTML =
     `<img src="${v.thumbnailUrl || 'https://i.imgur.com/E8GUx7G.jpeg'}"
            alt="${v.title}" style="width:100%;border-radius:12px;">`;
 
-  viewIncrementedFor = null;
-
   updateShareLinks(id, v);
   listenComments(id);
+  viewIncrementedFor = null;
 }
 
-/* ----------------- MODAL PLAYER ----------------- */
+/* ----------------- play & view counter (di dalam kotak atas) ----------------- */
 
 function openVideoFrame(v){
   if (!v) return;
@@ -166,7 +156,7 @@ function openVideoFrame(v){
   let url = v.videoUrl || "";
   if (!url) return;
 
-  // Normalisasi link YouTube ke embed
+  // Normalisasi link YouTube (watch / youtu.be -> embed)
   try {
     if (url.includes("youtube.com/watch")) {
       const u  = new URL(url);
@@ -183,47 +173,10 @@ function openVideoFrame(v){
 
   console.log("Playing video URL:", url);
 
-  // Hapus modal lama kalau ada
-  const old = document.getElementById("dk-video-modal");
-  if (old) old.remove();
-
-  // Overlay gelap fullscreen
-  const overlay = document.createElement("div");
-  overlay.id = "dk-video-modal";
-  overlay.style.position = "fixed";
-  overlay.style.inset = "0";
-  overlay.style.background = "rgba(0,0,0,0.9)";
-  overlay.style.display = "flex";
-  overlay.style.alignItems = "center";
-  overlay.style.justifyContent = "center";
-  overlay.style.zIndex = "9999";
-
-  // Kotak player
-  const box = document.createElement("div");
-  box.style.position = "relative";
-  box.style.width = "90%";
-  box.style.maxWidth = "900px";
-  box.style.aspectRatio = "16 / 9";
-  box.style.background = "#000";
-  box.style.borderRadius = "16px";
-  box.style.overflow = "hidden";
-  box.style.boxShadow = "0 20px 60px rgba(0,0,0,0.6)";
-
-  // Tombol close
-  const closeBtn = document.createElement("button");
-  closeBtn.textContent = "✕";
-  closeBtn.style.position = "absolute";
-  closeBtn.style.top = "8px";
-  closeBtn.style.right = "12px";
-  closeBtn.style.zIndex = "2";
-  closeBtn.style.border = "none";
-  closeBtn.style.background = "rgba(0,0,0,0.6)";
-  closeBtn.style.color = "#fff";
-  closeBtn.style.padding = "4px 10px";
-  closeBtn.style.borderRadius = "999px";
-  closeBtn.style.cursor = "pointer";
-  closeBtn.onclick = () => overlay.remove();
-  box.appendChild(closeBtn);
+  // Bersihkan kotak player dan pakai itu sebagai container video
+  playerThumb.innerHTML = "";
+  playerThumb.style.position = "relative";
+  playerThumb.style.padding  = "0";
 
   // Jika YouTube -> iframe
   if (url.includes("youtube.com")) {
@@ -235,69 +188,64 @@ function openVideoFrame(v){
     iframe.style.width  = "100%";
     iframe.style.height = "100%";
     iframe.style.border = "0";
-    box.appendChild(iframe);
-  } else {
-    // Selain YouTube: HTML5 video
-    const vid = document.createElement("video");
-    vid.src = url;
-    vid.controls = true;
-    vid.autoplay = true;
-    vid.style.width  = "100%";
-    vid.style.height = "100%";
-    box.appendChild(vid);
-
-    // DOUBLE TAP SKIP
-    let skipAmount = 5;
-    let lastTap = 0;
-
-    vid.addEventListener("click", () => {
-      const now = Date.now();
-      if (now - lastTap < 300) {
-        const dur = vid.duration || 0;
-        if (dur > 0) {
-          const newTime = Math.min(dur, vid.currentTime + skipAmount);
-          vid.currentTime = newTime;
-          showSkipToast("+" + skipAmount + "s");
-          skipAmount += 5;
-          if (skipAmount > 100) skipAmount = 5;
-        }
-      }
-      lastTap = now;
-    });
-
-    function showSkipToast(msg){
-      const toast = document.createElement("div");
-      toast.textContent = msg;
-      toast.style.position = "absolute";
-      toast.style.bottom = "14px";
-      toast.style.right = "18px";
-      toast.style.padding = "6px 10px";
-      toast.style.fontSize = "14px";
-      toast.style.background = "rgba(0,0,0,0.7)";
-      toast.style.color = "#fff";
-      toast.style.borderRadius = "999px";
-      toast.style.pointerEvents = "none";
-      toast.style.opacity = "1";
-      toast.style.transition = "opacity 0.5s ease-out";
-      box.appendChild(toast);
-      setTimeout(() => {
-        toast.style.opacity = "0";
-        setTimeout(() => toast.remove(), 500);
-      }, 400);
-    }
+    playerThumb.appendChild(iframe);
+    return; // double-tap skip nggak bisa untuk YouTube
   }
 
-  overlay.appendChild(box);
+  // Kalau bukan YouTube → anggap file video langsung (MP4 dll)
+  const vid = document.createElement("video");
+  vid.src = url;
+  vid.controls = true;
+  vid.autoplay = true;
+  vid.style.width  = "100%";
+  vid.style.height = "100%";
+  playerThumb.appendChild(vid);
 
-  // Klik area gelap di luar box untuk tutup
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) overlay.remove();
+  // Double-tap skip: 5s, 10s, 15s... sampai 100s lalu balik 5s
+  let skipAmount = 5;
+  let lastTap = 0;
+
+  vid.addEventListener("click", () => {
+    const now = Date.now();
+
+    // klik 2x dalam 300ms = double tap
+    if (now - lastTap < 300) {
+      const dur = vid.duration || 0;
+      if (dur > 0) {
+        const newTime = Math.min(dur, vid.currentTime + skipAmount);
+        vid.currentTime = newTime;
+        showSkipToast("+" + skipAmount + "s");
+
+        skipAmount += 5;
+        if (skipAmount > 100) skipAmount = 5;
+      }
+    }
+    lastTap = now;
   });
 
-  document.body.appendChild(overlay);
-}
+  function showSkipToast(msg){
+    const toast = document.createElement("div");
+    toast.textContent = msg;
+    toast.style.position = "absolute";
+    toast.style.bottom = "14px";
+    toast.style.right = "18px";
+    toast.style.padding = "6px 10px";
+    toast.style.fontSize = "14px";
+    toast.style.background = "rgba(0,0,0,0.7)";
+    toast.style.color = "#fff";
+    toast.style.borderRadius = "999px";
+    toast.style.pointerEvents = "none";
+    toast.style.opacity = "1";
+    toast.style.transition = "opacity 0.5s ease-out";
 
-/* ----------------- play wrapper ----------------- */
+    playerThumb.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.opacity = "0";
+      setTimeout(() => toast.remove(), 500);
+    }, 400);
+  }
+}
 
 function playCurrentVideo(){
   if (!currentVideoId){
@@ -307,7 +255,7 @@ function playCurrentVideo(){
   const v = videos[currentVideoId];
   openVideoFrame(v);
 
-  // Naikkan view sekali per sesi
+  // naikkan view sekali per pemilihan
   if (viewIncrementedFor !== currentVideoId){
     viewIncrementedFor = currentVideoId;
     db.ref(`videos/${currentVideoId}/views`).transaction(cur => (cur||0)+1);
@@ -322,6 +270,7 @@ function playCurrentVideo(){
   renderLastWatched(payload);
 }
 
+// tombol Play + klik thumbnail
 playBtn.addEventListener('click', playCurrentVideo);
 playerThumb.addEventListener('click', playCurrentVideo);
 
