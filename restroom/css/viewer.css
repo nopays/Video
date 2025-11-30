@@ -26,7 +26,13 @@ body{
   margin:0 auto;
   padding:16px;
 }
-
+.video-frame-wrap {
+  margin-top: 1rem;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+  position: relative;   /* supaya toast skip +Xs bisa nempel di pojok */
+}
 /* HEADER */
 .topbar{
   display:flex;
