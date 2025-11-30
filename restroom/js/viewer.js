@@ -1,55 +1,47 @@
 // restroom/js/viewer.js
 
-/* =========================
-   STATE & ELEMENTS
-========================= */
-
 let videos = {};
 let currentVideoId = null;
 let commentsRef = null;
 let viewIncrementedFor = null;
 
-const videoListEl    = document.getElementById('videoList');
-const searchInput    = document.getElementById('searchInput');
+const videoListEl   = document.getElementById('videoList');
+const searchInput   = document.getElementById('searchInput');
 
-const playerTitle    = document.getElementById('playerTitle');
-const playerDesc     = document.getElementById('playerDesc');
-const playerThumb    = document.getElementById('playerThumb');
-const metaLine       = document.getElementById('metaLine');
-const videoFrameWrap = document.getElementById('videoFrameWrap');
+const playerTitle   = document.getElementById('playerTitle');
+const playerDesc    = document.getElementById('playerDesc');
+const playerThumb   = document.getElementById('playerThumb');
+const metaLine      = document.getElementById('metaLine');
 
-const statViews      = document.getElementById('statViews');
-const statLikes      = document.getElementById('statLikes');
-const statComments   = document.getElementById('statComments');
+const statViews     = document.getElementById('statViews');
+const statLikes     = document.getElementById('statLikes');
+const statComments  = document.getElementById('statComments');
 
-const playBtn        = document.getElementById('playBtn');
-const likeBtn        = document.getElementById('likeBtn');
+const playBtn       = document.getElementById('playBtn');
+const likeBtn       = document.getElementById('likeBtn');
 
-const commentList    = document.getElementById('commentList');
-const commentForm    = document.getElementById('commentForm');
-const commentName    = document.getElementById('commentName');
-const commentText    = document.getElementById('commentText');
+const commentList   = document.getElementById('commentList');
+const commentForm   = document.getElementById('commentForm');
+const commentName   = document.getElementById('commentName');
+const commentText   = document.getElementById('commentText');
 
-const shareWhatsapp  = document.getElementById('shareWhatsapp');
-const shareTelegram  = document.getElementById('shareTelegram');
-const shareFacebook  = document.getElementById('shareFacebook');
-const shareTwitter   = document.getElementById('shareTwitter');
-const shareCopy      = document.getElementById('shareCopy');
+const shareWhatsapp = document.getElementById('shareWhatsapp');
+const shareTelegram = document.getElementById('shareTelegram');
+const shareFacebook = document.getElementById('shareFacebook');
+const shareTwitter  = document.getElementById('shareTwitter');
+const shareCopy     = document.getElementById('shareCopy');
 
-const lastWatchedBox = document.getElementById('lastWatchedBox');
-const playerPanel    = document.getElementById('playerPanel');
+const lastWatchedBox= document.getElementById('lastWatchedBox');
+const playerPanel   = document.getElementById('playerPanel');
 
-const LAST_WATCHED_KEY  = 'dkplay.lastWatched';
-const LIKED_KEY_PREFIX  = 'dkplay.liked.';
+const LAST_WATCHED_KEY = 'dkplay.lastWatched';
 
-// Sembunyikan panel player di awal
+/* ==== SEMBUNYIKAN PANEL PLAYER DI AWAL ==== */
 if (playerPanel) {
-  playerPanel.classList.add('hidden');
+  playerPanel.classList.add('hidden'); // pastikan di CSS: .hidden {display:none!important;}
 }
 
-/* =========================
-   HELPERS
-========================= */
+/* ----------------- helpers ----------------- */
 
 function cE(tag, cls, text){
   const el = document.createElement(tag);
@@ -60,25 +52,22 @@ function cE(tag, cls, text){
 
 function fmtNumber(num){
   if (!num) return 0;
-  if (num > 1_000_000) return (num / 1_000_000).toFixed(1) + 'M';
-  if (num > 1_000)     return (num / 1_000).toFixed(1) + 'K';
+  if (num > 1_000_000) return (num/1_000_000).toFixed(1)+'M';
+  if (num > 1_000) return (num/1_000).toFixed(1)+'K';
   return num;
 }
-
 function fmtDate(ts){
   if (!ts) return '-';
   return new Date(ts).toLocaleString('id-ID');
 }
 
-/* =========================
-   SHARE LINK
-========================= */
+/* ----------------- share link ----------------- */
 
 function updateShareLinks(videoId, video){
-  const baseUrl  = window.location.origin + window.location.pathname;
+  const baseUrl = window.location.origin + window.location.pathname;
   const videoUrl = `${baseUrl}?v=${encodeURIComponent(videoId)}`;
 
-  const text     = encodeURIComponent(`Nonton "${video.title}" di DKPlay`);
+  const text = encodeURIComponent(`Nonton "${video.title}" di DKPlay`);
   const shareUrl = encodeURIComponent(videoUrl);
 
   shareWhatsapp.href = `https://api.whatsapp.com/send?text=${text}%20${shareUrl}`;
@@ -88,62 +77,50 @@ function updateShareLinks(videoId, video){
 
   shareCopy.onclick = () => {
     navigator.clipboard.writeText(videoUrl)
-      .then(() => alert('Link video disalin ✔'))
-      .catch(() => alert('Gagal menyalin link'));
+      .then(()=> alert('Link video disalin ✔'))
+      .catch(()=> alert('Gagal menyalin link'));
   };
 }
 
-/* =========================
-   RENDER LIST VIDEO
-========================= */
+/* ----------------- render video list ----------------- */
 
-function renderVideoList(filter = ''){
-  if (!videoListEl) return;
-
+function renderVideoList(filter=''){
   videoListEl.innerHTML = '';
   const term = filter.trim().toLowerCase();
 
-  Object.entries(videos).forEach(([id, v]) => {
+  Object.entries(videos).forEach(([id, v])=>{
     if (term && !v.title.toLowerCase().includes(term)) return;
 
-    const card = cE('div', 'video-card');
+    const card = cE('div','video-card');
     card.dataset.id = id;
 
-    const tWrap = cE('div', 'video-thumb');
-    const img   = new Image();
-    img.src     = v.thumbnailUrl || 'https://i.imgur.com/E8GUx7G.jpeg';
-    img.alt     = v.title;
-
-    const badge  = cE('div', 'badge', v.duration || 'K-Drama');
-    const badge2 = cE('div', 'badge badge-right', fmtNumber(v.views || 0) + ' views');
-
+    const tWrap = cE('div','video-thumb');
+    const img = new Image();
+    img.src = v.thumbnailUrl || 'https://i.imgur.com/E8GUx7G.jpeg';
+    img.alt = v.title;
+    const badge = cE('div','badge', v.duration || 'K-Drama');
+    const badge2 = cE('div','badge badge-right', fmtNumber(v.views||0)+' views');
     tWrap.appendChild(img);
     tWrap.appendChild(badge);
     tWrap.appendChild(badge2);
 
-    const meta  = cE('div', 'video-meta');
-    const title = cE('div', 'video-title', v.title);
-    const stats = cE(
-      'div',
-      'video-stats',
-      `${fmtNumber(v.likes || 0)} likes · ${(v.commentsCount || 0)} komentar`
-    );
-
-    meta.appendChild(title);
+    const meta = cE('div','video-meta');
+    const t = cE('div','video-title', v.title);
+    const stats = cE('div','video-stats',
+      `${fmtNumber(v.likes||0)} likes · ${(v.commentsCount||0)} komentar`);
+    meta.appendChild(t);
     meta.appendChild(stats);
 
     card.appendChild(tWrap);
     card.appendChild(meta);
 
-    card.addEventListener('click', () => selectVideo(id));
+    card.addEventListener('click', ()=> selectVideo(id));
 
     videoListEl.appendChild(card);
   });
 }
 
-/* =========================
-   PILIH VIDEO
-========================= */
+/* ----------------- pilih video ----------------- */
 
 function detachCommentsListener(){
   if (commentsRef){
@@ -156,40 +133,32 @@ function selectVideo(id){
   const v = videos[id];
   if (!v) return;
 
-  // tampilkan panel player
+  // Saat ada video dipilih, tampilkan panel
   if (playerPanel) {
     playerPanel.classList.remove('hidden');
   }
 
   currentVideoId = id;
-
-  playerTitle.textContent   = v.title;
-  playerDesc.textContent    = v.description || 'Drama Korea pilihan malam ini.';
-  statViews.textContent     = `${fmtNumber(v.views || 0)} views`;
-  statLikes.textContent     = `${fmtNumber(v.likes || 0)} likes`;
-  statComments.textContent  = `${v.commentsCount || 0} komentar`;
+  playerTitle.textContent = v.title;
+  playerDesc.textContent  = v.description || 'Drama Korea pilihan malam ini.';
+  statViews.textContent   = `${fmtNumber(v.views||0)} views`;
+  statLikes.textContent   = `${fmtNumber(v.likes||0)} likes`;
+  statComments.textContent= `${v.commentsCount||0} komentar`;
 
   metaLine.textContent =
-    `Diupload: ${fmtDate(v.createdAt)} • Terakhir edit: ${fmtDate(v.updatedAt || v.createdAt)}`;
+    `Diupload: ${fmtDate(v.createdAt)} • Terakhir edit: ${fmtDate(v.updatedAt||v.createdAt)}`;
 
   playerThumb.innerHTML =
     `<img src="${v.thumbnailUrl || 'https://i.imgur.com/E8GUx7G.jpeg'}"
            alt="${v.title}" style="width:100%;border-radius:12px;">`;
 
-  // reset frame video
-  videoFrameWrap.innerHTML     = '';
-  videoFrameWrap.hidden        = true;
-  videoFrameWrap.style.display = 'none';
-  viewIncrementedFor           = null;
+  viewIncrementedFor = null;
 
   updateShareLinks(id, v);
   listenComments(id);
-
-  // scroll ke player (bagus untuk HP)
-  playerPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-/* ----------------- play & view counter ----------------- */
+/* ----------------- MODAL PLAYER ----------------- */
 
 function openVideoFrame(v){
   if (!v) return;
@@ -197,7 +166,7 @@ function openVideoFrame(v){
   let url = v.videoUrl || "";
   if (!url) return;
 
-  // ---- Normalisasi link YouTube ----
+  // Normalisasi link YouTube ke embed
   try {
     if (url.includes("youtube.com/watch")) {
       const u  = new URL(url);
@@ -214,33 +183,49 @@ function openVideoFrame(v){
 
   console.log("Playing video URL:", url);
 
-  // ===============================
-  //  TAMPILKAN AREA VIDEO DENGAN PAKSA
-  // ===============================
-  if (playerThumb) {
-    playerThumb.style.display = "none";
-  }
+  // Hapus modal lama kalau ada
+  const old = document.getElementById("dk-video-modal");
+  if (old) old.remove();
 
-  if (!videoFrameWrap) return;
+  // Overlay gelap fullscreen
+  const overlay = document.createElement("div");
+  overlay.id = "dk-video-modal";
+  overlay.style.position = "fixed";
+  overlay.style.inset = "0";
+  overlay.style.background = "rgba(0,0,0,0.9)";
+  overlay.style.display = "flex";
+  overlay.style.alignItems = "center";
+  overlay.style.justifyContent = "center";
+  overlay.style.zIndex = "9999";
 
-  // hapus isi lama
-  videoFrameWrap.innerHTML = "";
+  // Kotak player
+  const box = document.createElement("div");
+  box.style.position = "relative";
+  box.style.width = "90%";
+  box.style.maxWidth = "900px";
+  box.style.aspectRatio = "16 / 9";
+  box.style.background = "#000";
+  box.style.borderRadius = "16px";
+  box.style.overflow = "hidden";
+  box.style.boxShadow = "0 20px 60px rgba(0,0,0,0.6)";
 
-  // buang atribut hidden kalau ada
-  videoFrameWrap.hidden = false;
+  // Tombol close
+  const closeBtn = document.createElement("button");
+  closeBtn.textContent = "✕";
+  closeBtn.style.position = "absolute";
+  closeBtn.style.top = "8px";
+  closeBtn.style.right = "12px";
+  closeBtn.style.zIndex = "2";
+  closeBtn.style.border = "none";
+  closeBtn.style.background = "rgba(0,0,0,0.6)";
+  closeBtn.style.color = "#fff";
+  closeBtn.style.padding = "4px 10px";
+  closeBtn.style.borderRadius = "999px";
+  closeBtn.style.cursor = "pointer";
+  closeBtn.onclick = () => overlay.remove();
+  box.appendChild(closeBtn);
 
-  // paksa override CSS apapun
-  videoFrameWrap.style.setProperty("display", "block", "important");
-  videoFrameWrap.style.setProperty("height", "260px", "important");
-  videoFrameWrap.style.setProperty("background", "#000", "important");
-  videoFrameWrap.style.setProperty("border-radius", "12px");
-  videoFrameWrap.style.setProperty("overflow", "hidden");
-  videoFrameWrap.style.position = "relative";
-  videoFrameWrap.style.marginTop = "16px";
-
-  // ===============================
-  //  YOUTUBE (IFRAME)
-  // ===============================
+  // Jika YouTube -> iframe
   if (url.includes("youtube.com")) {
     const iframe = document.createElement("iframe");
     iframe.src = url;
@@ -250,85 +235,84 @@ function openVideoFrame(v){
     iframe.style.width  = "100%";
     iframe.style.height = "100%";
     iframe.style.border = "0";
+    box.appendChild(iframe);
+  } else {
+    // Selain YouTube: HTML5 video
+    const vid = document.createElement("video");
+    vid.src = url;
+    vid.controls = true;
+    vid.autoplay = true;
+    vid.style.width  = "100%";
+    vid.style.height = "100%";
+    box.appendChild(vid);
 
-    videoFrameWrap.appendChild(iframe);
-    return;
+    // DOUBLE TAP SKIP
+    let skipAmount = 5;
+    let lastTap = 0;
+
+    vid.addEventListener("click", () => {
+      const now = Date.now();
+      if (now - lastTap < 300) {
+        const dur = vid.duration || 0;
+        if (dur > 0) {
+          const newTime = Math.min(dur, vid.currentTime + skipAmount);
+          vid.currentTime = newTime;
+          showSkipToast("+" + skipAmount + "s");
+          skipAmount += 5;
+          if (skipAmount > 100) skipAmount = 5;
+        }
+      }
+      lastTap = now;
+    });
+
+    function showSkipToast(msg){
+      const toast = document.createElement("div");
+      toast.textContent = msg;
+      toast.style.position = "absolute";
+      toast.style.bottom = "14px";
+      toast.style.right = "18px";
+      toast.style.padding = "6px 10px";
+      toast.style.fontSize = "14px";
+      toast.style.background = "rgba(0,0,0,0.7)";
+      toast.style.color = "#fff";
+      toast.style.borderRadius = "999px";
+      toast.style.pointerEvents = "none";
+      toast.style.opacity = "1";
+      toast.style.transition = "opacity 0.5s ease-out";
+      box.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        setTimeout(() => toast.remove(), 500);
+      }, 400);
+    }
   }
 
-  // ===============================
-  //  VIDEO BIASA (MP4 / FILE)
-  // ===============================
-  const vid = document.createElement("video");
-  vid.src      = url;
-  vid.controls = true;
-  vid.autoplay = true;
-  vid.style.width  = "100%";
-  vid.style.height = "100%";
+  overlay.appendChild(box);
 
-  videoFrameWrap.appendChild(vid);
-
-  // ---------- DOUBLE TAP SKIP ----------
-  let skipAmount = 5;
-  let lastTap    = 0;
-
-  vid.addEventListener("click", () => {
-    const now = Date.now();
-
-    if (now - lastTap < 300) {
-      const dur = vid.duration || 0;
-      if (dur > 0) {
-        const newTime = Math.min(dur, vid.currentTime + skipAmount);
-        vid.currentTime = newTime;
-        showSkipToast("+" + skipAmount + "s");
-
-        skipAmount += 5;
-        if (skipAmount > 100) skipAmount = 5;
-      }
-    }
-
-    lastTap = now;
+  // Klik area gelap di luar box untuk tutup
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) overlay.remove();
   });
 
-  function showSkipToast(msg){
-    const toast = document.createElement("div");
-    toast.textContent = msg;
-    toast.style.position      = "absolute";
-    toast.style.bottom        = "14px";
-    toast.style.right         = "18px";
-    toast.style.padding       = "6px 10px";
-    toast.style.fontSize      = "14px";
-    toast.style.background    = "rgba(0,0,0,0.7)";
-    toast.style.color         = "#fff";
-    toast.style.borderRadius  = "999px";
-    toast.style.pointerEvents = "none";
-    toast.style.opacity       = "1";
-    toast.style.transition    = "opacity 0.5s ease-out";
-
-    videoFrameWrap.appendChild(toast);
-
-    setTimeout(() => {
-      toast.style.opacity = "0";
-      setTimeout(() => toast.remove(), 500);
-    }, 400);
-  }
+  document.body.appendChild(overlay);
 }
+
+/* ----------------- play wrapper ----------------- */
 
 function playCurrentVideo(){
   if (!currentVideoId){
     alert('Pilih video dulu ya 😊');
     return;
   }
-
   const v = videos[currentVideoId];
   openVideoFrame(v);
 
-  // view +1 sekali per pemilihan
+  // Naikkan view sekali per sesi
   if (viewIncrementedFor !== currentVideoId){
     viewIncrementedFor = currentVideoId;
-    db.ref(`videos/${currentVideoId}/views`).transaction(cur => (cur || 0) + 1);
+    db.ref(`videos/${currentVideoId}/views`).transaction(cur => (cur||0)+1);
   }
 
-  // simpan history terakhir ditonton
   const payload = {
     videoId: currentVideoId,
     title: v.title,
@@ -338,32 +322,17 @@ function playCurrentVideo(){
   renderLastWatched(payload);
 }
 
-// tombol Play & klik thumbnail
-if (playBtn)      playBtn.addEventListener('click', playCurrentVideo);
-if (playerThumb)  playerThumb.addEventListener('click', playCurrentVideo);
+playBtn.addEventListener('click', playCurrentVideo);
+playerThumb.addEventListener('click', playCurrentVideo);
 
-/* =========================
-   LIKE (LIMIT 1x PER VIDEO)
-========================= */
+/* ----------------- like ----------------- */
 
-if (likeBtn){
-  likeBtn.addEventListener('click', () => {
-    if (!currentVideoId) return;
+likeBtn.addEventListener('click', ()=>{
+  if (!currentVideoId) return;
+  db.ref(`videos/${currentVideoId}/likes`).transaction(cur => (cur||0)+1);
+});
 
-    const key = LIKED_KEY_PREFIX + currentVideoId;
-    if (localStorage.getItem(key)){
-      alert('Kamu sudah like video ini 👍');
-      return;
-    }
-
-    db.ref(`videos/${currentVideoId}/likes`).transaction(cur => (cur || 0) + 1);
-    localStorage.setItem(key, '1');
-  });
-}
-
-/* =========================
-   KOMENTAR
-========================= */
+/* ----------------- comments ----------------- */
 
 function listenComments(videoId){
   detachCommentsListener();
@@ -371,17 +340,18 @@ function listenComments(videoId){
     '<div style="font-size:.8rem;color:#9ca3af;">Memuat komentar...</div>';
 
   commentsRef = db.ref(`comments/${videoId}`);
-  commentsRef.on('value', snap => {
+  commentsRef.on('value', snap=>{
     const data = snap.val() || {};
-    const arr  = Object.values(data).sort((a,b) => (a.createdAt || 0) - (b.createdAt || 0));
+    const arr = Object.values(data).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
 
     commentList.innerHTML = '';
-    arr.forEach(c => {
+    arr.forEach(c=>{
       const item = cE('div','comment-item');
-      const head = cE('div', null);
+      const head = cE('div',null);
       head.innerHTML = `<strong>${c.name || 'Anonim'}</strong>`;
-      const text = cE('div', null, c.text || '');
-      const meta = cE('div', 'comment-meta', fmtDate(c.createdAt || Date.now()));
+      const text = cE('div',null,c.text || '');
+      const meta = cE('div','comment-meta',
+        fmtDate(c.createdAt||Date.now()));
       item.appendChild(head);
       item.appendChild(text);
       item.appendChild(meta);
@@ -392,57 +362,45 @@ function listenComments(videoId){
   });
 }
 
-if (commentForm){
-  commentForm.addEventListener('submit', e => {
-    e.preventDefault();
-    if (!currentVideoId){
-      alert('Pilih video dulu dulu sebelum komentar.');
-      return;
-    }
-    const name = (commentName.value || 'Anonim').trim();
-    const text = commentText.value.trim();
-    if (!text) return;
+commentForm.addEventListener('submit', e=>{
+  e.preventDefault();
+  if (!currentVideoId){
+    alert('Pilih video dulu dulu sebelum komentar.');
+    return;
+  }
+  const name = (commentName.value || 'Anonim').trim();
+  const text = commentText.value.trim();
+  if (!text) return;
 
-    db.ref(`comments/${currentVideoId}`).push({
-      name,
-      text,
-      createdAt: Date.now()
-    }).then(() => {
-      commentText.value = '';
-    });
+  db.ref(`comments/${currentVideoId}`).push({
+    name,
+    text,
+    createdAt: Date.now()
+  }).then(()=>{
+    commentText.value = '';
   });
-}
+});
 
-/* =========================
-   SEARCH
-========================= */
+/* ----------------- search ----------------- */
 
-if (searchInput){
-  searchInput.addEventListener('input', e => {
-    renderVideoList(e.target.value);
-  });
-}
+searchInput.addEventListener('input', e=>{
+  renderVideoList(e.target.value);
+});
 
-/* =========================
-   LOAD LIST VIDEO REALTIME
-========================= */
+/* ----------------- load video list realtime ----------------- */
 
-db.ref('videos').on('value', snap => {
+db.ref('videos').on('value', snap=>{
   videos = snap.val() || {};
-  renderVideoList(searchInput ? (searchInput.value || '') : '');
+  renderVideoList(searchInput.value || '');
 
   if (currentVideoId && videos[currentVideoId]){
     selectVideo(currentVideoId);
   }
 });
 
-/* =========================
-   LAST WATCHED
-========================= */
+/* ----------------- last watched box ----------------- */
 
 function renderLastWatched(obj){
-  if (!lastWatchedBox) return;
-
   if (!obj){
     lastWatchedBox.textContent = 'Kamu belum pernah nonton video di sini.';
     return;
@@ -451,27 +409,23 @@ function renderLastWatched(obj){
     `Terakhir kamu nonton: "${obj.title}" pada ${fmtDate(obj.watchedAt)}.`;
 }
 
-/* =========================
-   ON LOAD
-========================= */
+/* ----------------- on load ----------------- */
 
-window.addEventListener('load', () => {
+window.addEventListener('load', ()=>{
   const params = new URLSearchParams(window.location.search);
-  const vId    = params.get('v');
+  const vId = params.get('v');
 
   const last = localStorage.getItem(LAST_WATCHED_KEY);
   if (last){
-    try {
-      renderLastWatched(JSON.parse(last));
-    } catch(e){}
+    try{ renderLastWatched(JSON.parse(last)); }catch(e){}
   }
 
   if (vId){
-    const check = setInterval(() => {
+    const check = setInterval(()=>{
       if (Object.keys(videos).length){
         clearInterval(check);
         if (videos[vId]) selectVideo(vId);
       }
-    }, 300);
+    },300);
   }
 });
