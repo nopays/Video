@@ -1,1 +1,100 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>DKPlay • Drama Korea</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="css/viewer.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="logo">DK<span>Play</span></div>
+      <div class="search-box">
+        <input id="searchInput" type="text" placeholder="Cari drama Korea..." />
+      </div>
+    </header>
 
+    <div id="lastWatchedBox" class="last-watched">
+      Kamu belum pernah nonton video di sini.
+    </div>
+
+    <main class="layout">
+      <!-- LIST VIDEO -->
+      <section class="video-list-section">
+        <h2 class="section-title">Drama Korea Terbaru</h2>
+        <div id="videoList" class="video-grid">
+          <!-- Kartu video dari JS -->
+        </div>
+      </section>
+
+      <!-- PLAYER + KOMENTAR -->
+      <section class="player-section">
+        <div class="player-card">
+          <div class="player-thumb" id="playerThumb">
+            <span>Pilih video untuk mulai menonton ✨</span>
+          </div>
+
+          <div class="player-info">
+            <h2 id="playerTitle">Belum ada video dipilih</h2>
+            <p id="playerDesc" class="player-desc">
+              Klik salah satu kartu video di kiri untuk mulai menonton.
+            </p>
+
+            <div class="meta-line" id="metaLine">
+              <!-- akan diisi created / updated -->
+            </div>
+
+            <div class="stats-row">
+              <span id="statViews">0 views</span>
+              <span id="statLikes">0 likes</span>
+              <span id="statComments">0 komentar</span>
+            </div>
+
+            <div class="actions-row">
+              <button id="playBtn" class="btn primary">▶ Play Video</button>
+              <button id="likeBtn" class="btn ghost">❤ Like</button>
+            </div>
+
+            <div class="share-row">
+              <span>Bagikan:</span>
+              <div class="share-buttons">
+                <a id="shareWhatsapp" target="_blank" rel="noopener">WA</a>
+                <a id="shareTelegram" target="_blank" rel="noopener">TG</a>
+                <a id="shareFacebook" target="_blank" rel="noopener">FB</a>
+                <a id="shareTwitter" target="_blank" rel="noopener">X</a>
+                <a id="shareCopy" href="javascript:void(0)">Copy Link</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="video-frame-wrap" id="videoFrameWrap" hidden>
+            <!-- iframe / video element dari JS -->
+          </div>
+
+          <div class="comments">
+            <h3>Komentar</h3>
+            <div id="commentList" class="comment-list">
+              <!-- komentar dari JS -->
+            </div>
+
+            <form id="commentForm" class="comment-form">
+              <input id="commentName" type="text" placeholder="Nama kamu" />
+              <textarea id="commentText" rows="2" placeholder="Tulis komentar..." required></textarea>
+              <button type="submit" class="btn primary full">Kirim Komentar</button>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+  <!-- Config + Logic -->
+  <script src="js/firebase-config.js"></script>
+  <script src="js/viewer.js"></script>
+</body>
+</html>
