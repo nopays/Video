@@ -36,7 +36,10 @@ const lastWatchedBox= document.getElementById('lastWatchedBox');
 const playerPanel   = document.getElementById('playerPanel');   // ⬅ tambah ini
 
 const LAST_WATCHED_KEY = 'dkplay.lastWatched';
-
+/* ==== SEMBUNYIKAN PANEL PLAYER DI AWAL ==== */
+if (playerPanel) {
+  playerPanel.classList.add('hidden');
+}
 /* ----------------- helpers ----------------- */
 
 function cE(tag, cls, text){
