@@ -189,6 +189,83 @@ function openVideoFrame(v){
   videoFrameWrap.hidden        = false;
   videoFrameWrap.style.display = 'block';
   videoFrameWrap.innerHTML     = "";
+  // 👉 kasih tinggi tetap supaya 100% tidak jadi 0
+  videoFrameWrap.style.height  = '260px';
+
+  // ------------ YouTube iframe ------------
+  if (url.includes("youtube.com")) {
+    const iframe = document.createElement("iframe");
+    iframe.src = url;
+    iframe.allow =
+      "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+    iframe.setAttribute("allowfullscreen", "true");
+    iframe.style.width  = "100%";
+    iframe.style.height = "100%";   // 100% dari 260px di wrapper
+    iframe.style.border = "0";
+    videoFrameWrap.appendChild(iframe);
+    // (skip feature untuk YouTube tidak bisa tanpa YouTube API)
+    return;
+  }
+
+  // ------------ HTML5 video (MP4 / direct link) ------------
+  const vid = document.createElement("video");
+  vid.src = url;
+  vid.controls = true;
+  vid.autoplay = true;
+  vid.style.width  = "100%";
+  vid.style.height = "100%";
+  videoFrameWrap.appendChild(vid);
+
+  // ==============
+  // DOUBLE TAP SKIP
+  // ==============
+  let skipAmount = 5;   // mulai 5 detik
+  let lastTap = 0;
+
+  vid.addEventListener("click", () => {
+    const now = Date.now();
+
+    // deteksi double tap (2 klik < 300ms)
+    if (now - lastTap < 300) {
+      const dur = vid.duration || 0;
+      if (dur > 0) {
+        const newTime = Math.min(dur, vid.currentTime + skipAmount);
+        vid.currentTime = newTime;
+        showSkipToast("+" + skipAmount + "s");
+        skipAmount += 5;
+        if (skipAmount > 100) skipAmount = 5;
+      }
+    }
+    lastTap = now;
+  });
+
+  function showSkipToast(msg){
+    const toast = document.createElement("div");
+    toast.textContent = msg;
+    toast.style.position = "absolute";
+    toast.style.bottom = "14px";
+    toast.style.right = "18px";
+    toast.style.padding = "6px 10px";
+    toast.style.fontSize = "14px";
+    toast.style.background = "rgba(0,0,0,0.7)";
+    toast.style.color = "#fff";
+    toast.style.borderRadius = "999px";
+    toast.style.pointerEvents = "none";
+    toast.style.opacity = "1";
+    toast.style.transition = "opacity 0.5s ease-out";
+    videoFrameWrap.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.opacity = "0";
+      setTimeout(() => toast.remove(), 500);
+    }, 400);
+  }
+}
+  // Sembunyikan thumbnail, tampilkan frame video
+  playerThumb.style.display    = 'none';
+  videoFrameWrap.hidden        = false;
+  videoFrameWrap.style.display = 'block';
+  videoFrameWrap.innerHTML     = "";
 
   // ------------ YouTube iframe ------------
   if (url.includes("youtube.com")) {
